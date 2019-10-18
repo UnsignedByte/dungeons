@@ -3,37 +3,48 @@
  * @Date:   18:41:21, 15-Oct-2019
  * @Filename: utils.js
  * @Last modified by:   edl
- * @Last modified time: 23:06:23, 17-Oct-2019
+ * @Last modified time: 23:47:28, 17-Oct-2019
  */
 
- function zeros(dim) {
+ function zeros(dim, val) {
+   if (val === undefined) val = 0;
    var arr = [];
    for (var i = 0; i < dim[0]; ++i) {
-     arr.push(dim.length === 1 ? 0 : zeros(dim.slice(1)));
+     arr.push(dim.length === 1 ? val : zeros(dim.slice(1), val));
    }
    return arr;
  }
 
 function rectIsEmpty(arr, x1, y1, x2, y2){
-  if (x1 < 0 || x2 > arr.length || y1 < 0 || y2 > arr.length) return false;
-  for (let i = x1; i <x2; i++){
-    if (sum(...arr[i].splice(y1, y2)) > 0) return false;
+  if (x1 < 0 || x2 >= arr.length || y1 < 0 || y2 >= arr[0].length) return false;
+  for (let i = x1; i < x2; i++){
+    if (Math.max(...arr[i].slice(y1, y2)) > 0) return false;
   }
   return true;
 }
 
+function pasteRect(arr, arr2, x1, y1){
+  for (let i = x1; i < arr2.length+x1; i++){
+    if (i < 0 || i >= arr.length) continue;
+    for (let j = y1; j < arr2[0].length+y1; j++){
+      if (j < 0 || j >= arr[0].length) continue;
+      arr[i][j] = arr2[i-x1][j-y1];
+    }
+  }
+  return arr;
+}
+
 function hexToRgb(hex) {
-    var i = parseInt(hex, 16);
-    var r = (i >> 16) & 255;
-    var g = (i >> 8) & 255;
-    var b = i & 255;
+    var r = (hex >> 16) & 255;
+    var g = (hex >> 8) & 255;
+    var b = hex & 255;
 
     return [r,g,b]
 }
 
 function canvasPutMatrix(ctx, mat) {
-  var height = arr1.length;
-  var width = arr1[0].length;
+  var height = mat[0].length;
+  var width = mat.length;
 
   var h = ctx.canvas.height;
   var w = ctx.canvas.width;
@@ -41,10 +52,10 @@ function canvasPutMatrix(ctx, mat) {
   var imgData = ctx.getImageData(0, 0, w, h);
   var data = imgData.data;  // the array of RGBA values
 
-  for(var i = 0; i < height; i++) {
-      for(var j = 0; j < width; j++) {
-          var s = 4 * i * w + 4 * j;  // calculate the index in the array
-          var x = hexToRgb(arr1[i][j]);  // the RGB values
+  for(var i = 0; i < width; i++) {
+      for(var j = 0; j < height; j++) {
+          var s = 4 * j * w + 4 * i;  // calculate the index in the array
+          var x = hexToRgb(mat[i][j]);  // the RGB values
           data[s] = x[0];
           data[s + 1] = x[1];
           data[s + 2] = x[2];
