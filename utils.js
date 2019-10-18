@@ -3,7 +3,7 @@
  * @Date:   18:41:21, 15-Oct-2019
  * @Filename: utils.js
  * @Last modified by:   edl
- * @Last modified time: 23:47:28, 17-Oct-2019
+ * @Last modified time: 00:41:50, 18-Oct-2019
  */
 
  function zeros(dim, val) {
@@ -67,12 +67,11 @@ function canvasPutMatrix(ctx, mat) {
 }
 
 class PoissonDisc{
-  constructor(w, h, r, tries, cSize){
+  constructor(w, h, tries, cSize){
     if (tries === undefined) tries = 30;
     if (cSize === undefined) cSize = Math.sqrt(2);
     this.tries = tries;
     this.cSize = cSize;
-    this.r = r;
     this.gw = Math.ceil(w/cSize);
     this.gh = Math.ceil(h/cSize);
     this.grid = new Array(this.gw*this.gh).fill(NaN);
@@ -83,7 +82,8 @@ class PoissonDisc{
     this.h = h;
   }
 
-  addPoint(){
+  addPoint(hr, vr){
+    console.log(hr, vr);
     if (!this.initiated) return this.sample((Math.random()/2+1/4) * this.w, (Math.random()/2+1/4) * this.h);
 
     while (this.oldQ){
@@ -92,26 +92,29 @@ class PoissonDisc{
 
       for (let j = 0; j < this.tries; j++){
         let radians = Math.PI*Math.random()*2;
-        let dist = Math.sqrt(Math.random())*this.r*2;
-        let x = choice[0]+dist*Math.cos(radians);
+        let dist = Math.sqrt(Math.random())*vr*2;
+        let x = choice[0]+dist*Math.cos(radians)*hr/vr;
         let y = choice[1]+dist*Math.sin(radians);
-        if (0 <= x && x < this.w && 0 <= y && y < this.h && this.inRange(x, y)) return this.sample(x, y);
+        console.log(x, y);
+        if (0 <= x && x < this.w && 0 <= y && y < this.h && this.inRange(x, y)) {
+          return this.sample(x, y);
+        }
       }
       this.queue[choiceind] = this.queue.pop();
       this.oldQ--;
     }
     return undefined
   }
-  inRange(x, y){
+  inRange(x, y, hr, vr){
     let xx = Math.floor(x / this.cSize);
     let yy = Math.floor(y / this.cSize);
-    let rX = [Math.max(0, Math.floor((x-this.r)/this.cSize)), Math.min(this.gw, Math.ceil((x+this.r)/this.cSize))];
-    let rY = [Math.max(0, Math.floor((y-this.r)/this.cSize)), Math.min(this.gh, Math.ceil((y+this.r)/this.cSize))];
+    let rX = [Math.max(0, Math.floor((x-hr)/this.cSize)), Math.min(this.gw, Math.ceil((x+hr)/this.cSize))];
+    let rY = [Math.max(0, Math.floor((y-vr)/this.cSize)), Math.min(this.gh, Math.ceil((y+vr)/this.cSize))];
     for (let yy = rY[0]; yy<rY[1]; yy++){
       let Y = yy*this.gw;
       for (let xx = rX[0]; xx<rX[1]; xx++){
         let pt = this.grid[Y+xx];
-        if (pt && ((pt[0]-x)**2+(pt[1]-y)**2 < this.r**2)) return false
+        if (pt && (((pt[0]-x)/hr)**2+((pt[1]-y)/vr)**2 < 1)) return false
       }
     }
     return true
