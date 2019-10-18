@@ -3,7 +3,7 @@
  * @Date:   18:41:21, 15-Oct-2019
  * @Filename: utils.js
  * @Last modified by:   edl
- * @Last modified time: 00:41:50, 18-Oct-2019
+ * @Last modified time: 10:15:30, 18-Oct-2019
  */
 
  function zeros(dim, val) {
@@ -66,10 +66,20 @@ function canvasPutMatrix(ctx, mat) {
   ctx.putImageData(imgData, 0, 0);
 }
 
+function randomWeighted(weights, seed){
+  let rand = (new Math.seedrandom(seed))()*weights.reduce((a, b) => a+b, 0);
+  for(let i = 0; i < weights.length; i++){
+    rand-=weights[i];
+    if (rand < 0) return i;
+  }
+  return NaN;
+}
+
 class PoissonDisc{
-  constructor(w, h, tries, cSize){
+  constructor(w, h, tries, seed, cSize){
     if (tries === undefined) tries = 30;
     if (cSize === undefined) cSize = Math.sqrt(2);
+    this.rng = new Math.seedrandom(seed)
     this.tries = tries;
     this.cSize = cSize;
     this.gw = Math.ceil(w/cSize);
@@ -83,19 +93,17 @@ class PoissonDisc{
   }
 
   addPoint(hr, vr){
-    console.log(hr, vr);
-    if (!this.initiated) return this.sample((Math.random()/2+1/4) * this.w, (Math.random()/2+1/4) * this.h);
+    if (!this.initiated) return this.sample((this.rng()/2+1/4) * this.w, (this.rng()/2+1/4) * this.h);
 
     while (this.oldQ){
-      let choiceind = Math.floor(Math.random()*this.oldQ);
+      let choiceind = Math.floor(this.rng()*this.oldQ);
       let choice = this.queue[choiceind];
 
       for (let j = 0; j < this.tries; j++){
-        let radians = Math.PI*Math.random()*2;
-        let dist = Math.sqrt(Math.random())*vr*2;
+        let radians = Math.PI*this.rng()*2;
+        let dist = Math.sqrt(this.rng())*vr*2;
         let x = choice[0]+dist*Math.cos(radians)*hr/vr;
         let y = choice[1]+dist*Math.sin(radians);
-        console.log(x, y);
         if (0 <= x && x < this.w && 0 <= y && y < this.h && this.inRange(x, y)) {
           return this.sample(x, y);
         }

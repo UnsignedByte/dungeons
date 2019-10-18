@@ -2,8 +2,9 @@
 
 var spareRandom = null;
 
-function normalRandom()
+function normalRandom(seed)
 {
+	let rng = new Math.seedrandom(seed);
 	var val, u, v, s, mul;
 
 	if(spareRandom !== null)
@@ -15,8 +16,8 @@ function normalRandom()
 	{
 		do
 		{
-			u = Math.random()*2-1;
-			v = Math.random()*2-1;
+			u = rng()*2-1;
+			v = rng()*2-1;
 
 			s = u*u+v*v;
 		} while(s === 0 || s >= 1);
@@ -30,29 +31,29 @@ function normalRandom()
 	return val;
 }
 
-function normalRandomInRange(min, max)
+function normalRandomInRange(min, max, seed)
 {
 	var val;
 	do
 	{
-		val = normalRandom();
+		val = normalRandom(seed);
 	} while(val < min || val > max);
 
 	return val;
 }
 
-function normalRandomScaled(mean, stddev)
+function normalRandomScaled(mean, stddev, seed)
 {
-	var r = normalRandom();
+	var r = normalRandom(seed);
 
 	r = r * stddev + mean;
 
 	return Math.round(r);
 }
 
-function lnRandomScaled(gmean, gstddev)
+function lnRandomScaled(gmean, gstddev, seed)
 {
-	var r = normalRandom();
+	var r = normalRandom(seed);
 
 	r = r * Math.log(gstddev) + Math.log(gmean);
 

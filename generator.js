@@ -3,7 +3,7 @@
  * @Date:   18:35:01, 15-Oct-2019
  * @Filename: generator.js
  * @Last modified by:   edl
- * @Last modified time: 00:44:00, 18-Oct-2019
+ * @Last modified time: 10:15:06, 18-Oct-2019
  */
 
 class Dungeon {
@@ -29,24 +29,22 @@ class Dungeon {
 
     let tries = 30; //number of times to try placing room before giving up
 
-    let roomdisp = new PoissonDisc(this.w, this.h, tries, 1)
+    let roomdisp = new PoissonDisc(this.w, this.h, tries, this.rng(), 1)
 
     for (let i = 0; i < roomnum; i++){
-      let cr = roomdat[chance.weighted([...Array(roomweights.length).keys()], roomweights)];
-      console.log(cr.dims.map((e) => e*(cr.dist+0.5)));
-      let room = roomdisp.addPoint(...cr.dims.map((e, ind) => e*(cr.dist+0.5)));
-      console.log(room);
+      let cr = roomdat[randomWeighted(roomweights, this.rng())];
+
+      let wantedSize = cr.dims.map((x, ind) => normalRandomScaled(x, cr.var[ind], this.rng()));
+
+      let room = roomdisp.addPoint(...wantedSize.map((e, ind) => e*(cr.dist+0.5)));
       if (room === undefined) break;
       room = Array.from(room)
       room[0] *= cr.dims[0]/cr.dims[1];
-      for (let iii = 0; iii < tries; iii++){
-        let wantedSize = cr.dims.map((x, ind) => normalRandomScaled(x, cr.var[ind]));
-        let tl = room.map((e,ind) => Math.floor(e - wantedSize[ind]/2)); //top left
-        let tr = room.map((e,ind) => Math.floor(e + wantedSize[ind]/2)); //top right
-        if(rectIsEmpty(this.mat, ...tl, ...tr)){
-          this.generateRoom(...tl, ...tr);
-          break;
-        }
+      // let wantedSize = cr.dims.map((x, ind) => normalRandomScaled(x, cr.var[ind]));
+      let tl = room.map((e,ind) => Math.floor(e - wantedSize[ind]/2)); //top left
+      let tr = room.map((e,ind) => Math.floor(e + wantedSize[ind]/2)); //top right
+      if(rectIsEmpty(this.mat, ...tl, ...tr)){
+        this.generateRoom(...tl, ...tr);
       }
     }
   }
@@ -59,6 +57,7 @@ class Dungeon {
 
 function randomDungeon(seed, w, h){
   let rng = new Math.seedrandom(seed);
+  console.log(seed);
   let roomnum = 1000;
 
   let roomdat = [
@@ -87,5 +86,5 @@ function randomDungeon(seed, w, h){
       var:[50,50]
     }
   ]
-  return new Dungeon(w, h, seed, roomnum, roomdat);
+  return new Dungeon(w, h, rng(), roomnum, roomdat);
 }

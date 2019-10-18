@@ -3,7 +3,7 @@
  * @Date:   21:56:34, 17-Oct-2019
  * @Filename: main.js
  * @Last modified by:   edl
- * @Last modified time: 23:39:52, 17-Oct-2019
+ * @Last modified time: 10:06:00, 18-Oct-2019
  */
 
 var globalSeed;
@@ -29,7 +29,7 @@ function setupCanvas(canvas) {
 
 
 window.onload = function(){
-  globalSeed = Math.random();
+  globalSeed = 1;
   globalRNG = new Math.seedrandom(globalSeed);
 
   canv = document.getElementById('canvas');
