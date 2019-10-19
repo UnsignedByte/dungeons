@@ -3,7 +3,7 @@
  * @Date:   18:35:01, 15-Oct-2019
  * @Filename: generator.js
  * @Last modified by:   edl
- * @Last modified time: 14:57:40, 19-Oct-2019
+ * @Last modified time: 15:12:06, 19-Oct-2019
  */
 
 const COLORMAP = {
@@ -23,11 +23,9 @@ const COLORMAP = {
   }
 }
 
-const CORRIDORWIDTH = 4;
-
 class Dungeon {
   constructor(width, height, seed,
-              roomnum, roomdat, forprop, stp)
+              roomnum, roomdat, forprop, stp, corridorwidth)
   {
     this.stats = {
       rooms:{
@@ -39,6 +37,7 @@ class Dungeon {
         straight:stp, //probability of continuing in direction
       }
     }
+    this.corridorwidth = corridorwidth;
     this.rng = new Math.seedrandom(seed);
     this.w = width;
     this.h = height;
@@ -105,15 +104,15 @@ class Dungeon {
     replaceMap[COLORMAP.room.t] = COLORMAP.jumpfloor;
 
     let randStart = (y1, y2) => {
-      if (y2-y1 < CORRIDORWIDTH) return y2;
-      return y1+Math.floor(this.rng()*(y2-y1-CORRIDORWIDTH)); // where corridor starts
+      if (y2-y1 < this.corridorwidth) return y2;
+      return y1+Math.floor(this.rng()*(y2-y1-this.corridorwidth)); // where corridor starts
     };
 
     let fillCorridorSlice = (x, y) => {
       // 0 = vertical, 1 = horizontal
-      for (let i = -1; i <= CORRIDORWIDTH; i++){ //top down
-        for (let j = -1; j <= CORRIDORWIDTH; j++){ //left right
-          if ((j === -1 || j === CORRIDORWIDTH) && (i === -1 || i === CORRIDORWIDTH)) continue; //Ignore corners
+      for (let i = -1; i <= this.corridorwidth; i++){ //top down
+        for (let j = -1; j <= this.corridorwidth; j++){ //left right
+          if ((j === -1 || j === this.corridorwidth) && (i === -1 || i === this.corridorwidth)) continue; //Ignore corners
           let p = [x+j, y+i];
           if (this.map[p[0]] === undefined || this.map[p[0]][p[1]] === undefined) continue;
           let col = (this.map[p[0]][p[1]] >> 8) << 8;
@@ -121,11 +120,11 @@ class Dungeon {
           else{
             if (i === -1){
               this.map[p[0]][p[1]] = COLORMAP.corridor.t;
-            }else if (i === CORRIDORWIDTH){
+            }else if (i === this.corridorwidth){
               this.map[p[0]][p[1]] = COLORMAP.corridor.b;
             }else if (j === -1){
               this.map[p[0]][p[1]] = COLORMAP.corridor.l;
-            }else if (j === CORRIDORWIDTH){
+            }else if (j === this.corridorwidth){
               this.map[p[0]][p[1]] = COLORMAP.corridor.r;
             }else{
               this.map[p[0]][p[1]] = COLORMAP.empty;
@@ -162,7 +161,7 @@ class Dungeon {
         }else{
           dir = 3+((tox-x > 0)*2-1)*((this.rng()>(1-cp)*dstF)*2-1);
         }
-        dir = (dir + CORRIDORWIDTH)%CORRIDORWIDTH;
+        dir = (dir + 4)%4;
       }
       // console.log(dir);
       switch (dir){
@@ -182,6 +181,7 @@ class Dungeon {
       // console.log(fromx, fromy);
       x = Math.max(0, Math.min(this.map.length, x));
       y = Math.max(0, Math.min(this.map[0].length, y));
+      // console.log(x, y, tox, toy, dir);
     } while (x != tox || y != toy)
   }
 
@@ -203,6 +203,7 @@ class Dungeon {
 function randomDungeon(seed, w, h){
   let rng = new Math.seedrandom(seed);
   let roomnum = rTR(rng(), 16, 128);
+  let corridorwidth = rTR(rng(), 3, 10);
 
   let genRandomRoom = () => {
     let room = {};
@@ -211,8 +212,8 @@ function randomDungeon(seed, w, h){
     for (let i = 2; i--;){
       // usually have a small room, occasionally large
       // \frac{100}{1+100^{\left(-2\left(\frac{1}{1.7-x}-1\right)\right)}}+4
-      room.dims[i] = Math.floor(100/(1+100**(-2*(1/(1.7-rng())-1)))+4);
-      room.var[i] = rTR(rng(), 0, (room.dims[i]-CORRIDORWIDTH)/2)
+      room.dims[i] = Math.floor(100/(1+100**(-2*(1/(1.7-rng())-1)))+corridorwidth);
+      room.var[i] = rTR(rng(), 0, (room.dims[i]-corridorwidth)/2)
     }
     room.weight = rng();
     room.dist = rTR(rng(), 0, 4);
@@ -234,5 +235,5 @@ function randomDungeon(seed, w, h){
   //    More occurences of high numbers (because most things from 0-0.7 look similar)
   let straightness = (1-Math.cos(Math.PI*rng())**8)*0.9;
 
-  return new Dungeon(w, h, rng(), roomnum, roomdat, forprop, straightness);
+  return new Dungeon(w, h, rng(), roomnum, roomdat, forprop, straightness, corridorwidth);
 }
