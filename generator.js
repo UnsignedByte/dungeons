@@ -3,7 +3,7 @@
  * @Date:   18:35:01, 15-Oct-2019
  * @Filename: generator.js
  * @Last modified by:   edl
- * @Last modified time: 14:48:17, 19-Oct-2019
+ * @Last modified time: 14:57:40, 19-Oct-2019
  */
 
 const COLORMAP = {
@@ -69,7 +69,6 @@ class Dungeon {
         this.drawEmptyRoom(...tl, ...tr);
       }
     }
-    console.log(this.rooms);
   }
 
   generateCorridors(){
