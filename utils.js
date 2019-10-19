@@ -3,7 +3,7 @@
  * @Date:   18:41:21, 15-Oct-2019
  * @Filename: utils.js
  * @Last modified by:   edl
- * @Last modified time: 00:44:08, 19-Oct-2019
+ * @Last modified time: 13:39:22, 19-Oct-2019
  */
 
  function zeros(dim, val) {
@@ -40,6 +40,10 @@ function hexToRgb(hex) {
     var b = hex & 255;
 
     return [r,g,b]
+}
+
+function rTR(r, s, e){ //random number to int in range
+  return Math.floor(r*(e-s)+s);
 }
 
 function canvasPutMatrix(ctx, mat) {

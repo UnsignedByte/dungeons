@@ -3,7 +3,7 @@
  * @Date:   18:35:01, 15-Oct-2019
  * @Filename: generator.js
  * @Last modified by:   edl
- * @Last modified time: 13:21:11, 19-Oct-2019
+ * @Last modified time: 14:48:17, 19-Oct-2019
  */
 
 const COLORMAP = {
@@ -16,10 +16,10 @@ const COLORMAP = {
     r:0x00FE00  //right wall
   },
   corridor:{
-    t:0xFD0000, //ceiling
-    b:0xFC0000, //floor
-    l:0x00FD00, //left wall
-    r:0x00FC00  //right wall
+    t:0x990000, //ceiling
+    b:0x980000, //floor
+    l:0x009900, //left wall
+    r:0x009800  //right wall
   }
 }
 
@@ -51,13 +51,7 @@ class Dungeon {
   }
 
   generateRooms(){
-    //roomnum = total number of rooms
-
     let roomweights = this.stats.rooms.dat.map((x)=>x.weight)
-
-    //roomdist = average distance (in number of rooms) between each room
-    //roomdims = average width and height of room
-    //roomvar = variation of room dimensions
 
     let tries = 30; //number of times to try placing room before giving up
 
@@ -68,8 +62,6 @@ class Dungeon {
       let wantedSize = cr.dims.map((x, ind) => normalRandomScaled(x, cr.var[ind], this.rng())+2);
       let room = roomdisp.addPoint(...wantedSize.map((e, ind) => e*(cr.dist+0.5)));
       if (room === undefined) continue;
-      room = [...room];
-      room[0] *= cr.dims[0]/cr.dims[1];
       let tl = room.map((e,ind) => Math.floor(e - wantedSize[ind]/2)+1); //top left
       let tr = room.map((e,ind) => Math.floor(e + wantedSize[ind]/2)-1); //bottom right
       if(rectIsEmpty(this.map, ...tl.map((x)=>x-1), ...tr.map((x)=>x+1))){
@@ -77,6 +69,7 @@ class Dungeon {
         this.drawEmptyRoom(...tl, ...tr);
       }
     }
+    console.log(this.rooms);
   }
 
   generateCorridors(){
@@ -108,8 +101,8 @@ class Dungeon {
 
     let replaceMap = {};
     replaceMap[COLORMAP.empty] = COLORMAP.empty;
+    replaceMap[COLORMAP.jumpfloor] = COLORMAP.jumpfloor;
     replaceMap[COLORMAP.room.b] = COLORMAP.jumpfloor;
-    // replaceMap[COLORMAP.corridor.b] = COLORMAP.jumpfloor;
     replaceMap[COLORMAP.room.t] = COLORMAP.jumpfloor;
 
     let randStart = (y1, y2) => {
@@ -210,36 +203,37 @@ class Dungeon {
 
 function randomDungeon(seed, w, h){
   let rng = new Math.seedrandom(seed);
-  let roomnum = 20;
+  let roomnum = rTR(rng(), 16, 128);
 
-  let roomdat = [
-    {
-      weight:1,
-      dist:1,
-      dims:[100,100],
-      var:[10,10]
-    },
-    {
-      weight:3,
-      dist:1,
-      dims:[50,15],
-      var:[4,3]
-    },
-    {
-      weight:2,
-      dist:0,
-      dims:[20,20],
-      var:[2,2]
+  let genRandomRoom = () => {
+    let room = {};
+    room.dims = [];
+    room.var = [];
+    for (let i = 2; i--;){
+      // usually have a small room, occasionally large
+      // \frac{100}{1+100^{\left(-2\left(\frac{1}{1.7-x}-1\right)\right)}}+4
+      room.dims[i] = Math.floor(100/(1+100**(-2*(1/(1.7-rng())-1)))+4);
+      room.var[i] = rTR(rng(), 0, (room.dims[i]-CORRIDORWIDTH)/2)
     }
-  ];
+    room.weight = rng();
+    room.dist = rTR(rng(), 0, 4);
+    return room
+  }
+  let nRoomTypes = rTR(rng(), 1, Math.ceil(roomnum/10));
+  let roomdat = [];
 
-  // let roomdat = [
-  //   {
-  //     weight:0.2,
-  //     dist:3,
-  //     dims:[50,50],
-  //     var:[0,0]
-  //   }
-  // ];
-  return new Dungeon(w, h, rng(), roomnum, roomdat, 1, 0);
+  for (let i = nRoomTypes; i--;){
+    roomdat.push(genRandomRoom());
+  }
+
+  //corridor stats -
+  //Forwardness (how often to go towards goal vs away)
+  //    as it approaches 0.5 it will become crazy so range is (0.6-1)
+  let forprop = 1-rng()*0.4;
+  //Straightness of corridors (how often to turn)
+  //    as it approaches 1 it will become crazy so range is (0=.9)
+  //    More occurences of high numbers (because most things from 0-0.7 look similar)
+  let straightness = (1-Math.cos(Math.PI*rng())**8)*0.9;
+
+  return new Dungeon(w, h, rng(), roomnum, roomdat, forprop, straightness);
 }
