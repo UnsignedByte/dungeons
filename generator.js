@@ -3,11 +3,11 @@
  * @Date:   18:35:01, 15-Oct-2019
  * @Filename: generator.js
  * @Last modified by:   edl
- * @Last modified time: 02:03:01, 19-Oct-2019
+ * @Last modified time: 13:21:11, 19-Oct-2019
  */
 
 const COLORMAP = {
-  empty:0xEEEE00,
+  empty:0x111100,
   jumpfloor:0xFFFF00, //floor you can jump through
   room:{
     t:0xFE0000, //ceiling
@@ -86,9 +86,21 @@ class Dungeon {
 
     for (let i = 1; i < nR; i++) {
       // let from = this.rooms[Math.floor(this.rng())*i];
-      let from = this.rooms[i-1];
       let to = this.rooms[i];
-      this.generateCorridor(from, to);
+      let toc = [(to[0]+to[2])/2, (to[1]+to[3])/2]; //center of room
+      let mind = Infinity;
+      let mini = 0;
+      //get closest room that is connected
+      for (let j = 0; j < i; j++){
+        let cr = this.rooms[j];
+        let crc = [(cr[0]+cr[2])/2, (cr[1]+cr[3])/2]; //center of test room
+        let dst = toc.map((e, i) => (e-crc[i])**2).reduce((a, b) => a+b);
+        if (dst < mind){
+          mind = dst;
+          mini = j;
+        }
+      }
+      this.generateCorridor(this.rooms[mini], to);
     }
   }
 
@@ -97,7 +109,7 @@ class Dungeon {
     let replaceMap = {};
     replaceMap[COLORMAP.empty] = COLORMAP.empty;
     replaceMap[COLORMAP.room.b] = COLORMAP.jumpfloor;
-    replaceMap[COLORMAP.corridor.b] = COLORMAP.jumpfloor;
+    // replaceMap[COLORMAP.corridor.b] = COLORMAP.jumpfloor;
     replaceMap[COLORMAP.room.t] = COLORMAP.jumpfloor;
 
     let randStart = (y1, y2) => {
@@ -105,24 +117,27 @@ class Dungeon {
       return y1+Math.floor(this.rng()*(y2-y1-CORRIDORWIDTH)); // where corridor starts
     };
 
-    let fillCorridorSlice = (x, y, dir) => {
+    let fillCorridorSlice = (x, y) => {
       // 0 = vertical, 1 = horizontal
-      for (let i = -1; i <= CORRIDORWIDTH; i++){
-        let p;
-        if (dir === 0) p = [x, y+i];
-        else p = [x+i, y];
-        if (this.map[p[0]] === undefined || this.map[p[0]][p[1]] === undefined) continue;
-        let col = (this.map[p[0]][p[1]] >> 8) << 8;
-        if (col in replaceMap) this.map[p[0]][p[1]] = replaceMap[col];
-        else{
-          if (i === -1){
-            if (dir) this.map[p[0]][p[1]] = COLORMAP.corridor.l;
-            else this.map[p[0]][p[1]] = COLORMAP.corridor.t;
-          }else if (i === CORRIDORWIDTH){
-            if (dir) this.map[p[0]][p[1]] = COLORMAP.corridor.r;
-            else this.map[p[0]][p[1]] = COLORMAP.corridor.b;
-          }else{
-            this.map[p[0]][p[1]] = COLORMAP.empty;
+      for (let i = -1; i <= CORRIDORWIDTH; i++){ //top down
+        for (let j = -1; j <= CORRIDORWIDTH; j++){ //left right
+          if ((j === -1 || j === CORRIDORWIDTH) && (i === -1 || i === CORRIDORWIDTH)) continue; //Ignore corners
+          let p = [x+j, y+i];
+          if (this.map[p[0]] === undefined || this.map[p[0]][p[1]] === undefined) continue;
+          let col = (this.map[p[0]][p[1]] >> 8) << 8;
+          if (col in replaceMap) this.map[p[0]][p[1]] = replaceMap[col];
+          else{
+            if (i === -1){
+              this.map[p[0]][p[1]] = COLORMAP.corridor.t;
+            }else if (i === CORRIDORWIDTH){
+              this.map[p[0]][p[1]] = COLORMAP.corridor.b;
+            }else if (j === -1){
+              this.map[p[0]][p[1]] = COLORMAP.corridor.l;
+            }else if (j === CORRIDORWIDTH){
+              this.map[p[0]][p[1]] = COLORMAP.corridor.r;
+            }else{
+              this.map[p[0]][p[1]] = COLORMAP.empty;
+            }
           }
         }
       }
@@ -195,24 +210,24 @@ class Dungeon {
 
 function randomDungeon(seed, w, h){
   let rng = new Math.seedrandom(seed);
-  let roomnum = 1000;
+  let roomnum = 20;
 
   let roomdat = [
     {
       weight:1,
-      dist:3,
+      dist:1,
       dims:[100,100],
       var:[10,10]
     },
     {
       weight:3,
-      dist:2,
+      dist:1,
       dims:[50,15],
       var:[4,3]
     },
     {
       weight:2,
-      dist:4,
+      dist:0,
       dims:[20,20],
       var:[2,2]
     }
@@ -226,5 +241,5 @@ function randomDungeon(seed, w, h){
   //     var:[0,0]
   //   }
   // ];
-  return new Dungeon(w, h, rng(), roomnum, roomdat, 0.1, 0.8);
+  return new Dungeon(w, h, rng(), roomnum, roomdat, 1, 0);
 }
