@@ -3,7 +3,7 @@
  * @Date:   16:41:55, 13-Feb-2018
  * @Filename: life.css
  * @Last modified by:   edl
- * @Last modified time: 23:17:58, 17-Oct-2019
+ * @Last modified time: 10:58:03, 18-Oct-2019
  */
 
 
@@ -17,4 +17,8 @@ html {
 body {
 	height: 100%;
 	margin: 0;
+	overflow: hidden;
+}
+canvas {
+	image-rendering:pixelated;
 }

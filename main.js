@@ -3,7 +3,7 @@
  * @Date:   21:56:34, 17-Oct-2019
  * @Filename: main.js
  * @Last modified by:   edl
- * @Last modified time: 10:06:00, 18-Oct-2019
+ * @Last modified time: 00:58:55, 19-Oct-2019
  */
 
 var globalSeed;
@@ -38,7 +38,5 @@ window.onload = function(){
   canv.height = window.innerHeight * 2;
 
   let testDungeon = randomDungeon(globalRNG(), window.innerWidth, window.innerHeight);
-  console.log(testDungeon)
-
-  canvasPutMatrix(context, testDungeon.mat);
+  canvasPutMatrix(context, testDungeon.map);
 }

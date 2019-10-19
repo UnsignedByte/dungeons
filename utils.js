@@ -3,7 +3,7 @@
  * @Date:   18:41:21, 15-Oct-2019
  * @Filename: utils.js
  * @Last modified by:   edl
- * @Last modified time: 10:15:30, 18-Oct-2019
+ * @Last modified time: 00:44:08, 19-Oct-2019
  */
 
  function zeros(dim, val) {
@@ -24,11 +24,11 @@ function rectIsEmpty(arr, x1, y1, x2, y2){
 }
 
 function pasteRect(arr, arr2, x1, y1){
-  for (let i = x1; i < arr2.length+x1; i++){
-    if (i < 0 || i >= arr.length) continue;
-    for (let j = y1; j < arr2[0].length+y1; j++){
-      if (j < 0 || j >= arr[0].length) continue;
-      arr[i][j] = arr2[i-x1][j-y1];
+  for (let i = 0; i < arr2.length; i++){
+    if (i+x1 < 0 || i+x1 >= arr.length) continue;
+    for (let j = 0; j < arr2[0].length; j++){
+      if (j+y1 < 0 || j+y1 >= arr[0].length) continue;
+      arr[i+x1][j+y1] = arr2[i][j];
     }
   }
   return arr;
@@ -104,7 +104,7 @@ class PoissonDisc{
         let dist = Math.sqrt(this.rng())*vr*2;
         let x = choice[0]+dist*Math.cos(radians)*hr/vr;
         let y = choice[1]+dist*Math.sin(radians);
-        if (0 <= x && x < this.w && 0 <= y && y < this.h && this.inRange(x, y)) {
+        if (0 <= x && x < this.w && 0 <= y && y < this.h && this.inRange(x, y, hr, vr)) {
           return this.sample(x, y);
         }
       }
@@ -114,8 +114,6 @@ class PoissonDisc{
     return undefined
   }
   inRange(x, y, hr, vr){
-    let xx = Math.floor(x / this.cSize);
-    let yy = Math.floor(y / this.cSize);
     let rX = [Math.max(0, Math.floor((x-hr)/this.cSize)), Math.min(this.gw, Math.ceil((x+hr)/this.cSize))];
     let rY = [Math.max(0, Math.floor((y-vr)/this.cSize)), Math.min(this.gh, Math.ceil((y+vr)/this.cSize))];
     for (let yy = rY[0]; yy<rY[1]; yy++){
