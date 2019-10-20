@@ -3,7 +3,7 @@
  * @Date:   18:41:21, 15-Oct-2019
  * @Filename: utils.js
  * @Last modified by:   edl
- * @Last modified time: 13:39:22, 19-Oct-2019
+ * @Last modified time: 16:35:13, 19-Oct-2019
  */
 
  function zeros(dim, val) {
@@ -97,7 +97,7 @@ class PoissonDisc{
   }
 
   addPoint(hr, vr){
-    if (!this.initiated) return this.sample((this.rng()/2+1/4) * this.w, (this.rng()/2+1/4) * this.h);
+    if (!this.initiated) return this.sample(this.w/2, this.h/2);
 
     while (this.oldQ){
       let choiceind = Math.floor(this.rng()*this.oldQ);

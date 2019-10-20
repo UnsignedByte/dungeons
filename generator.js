@@ -3,7 +3,7 @@
  * @Date:   18:35:01, 15-Oct-2019
  * @Filename: generator.js
  * @Last modified by:   edl
- * @Last modified time: 15:12:06, 19-Oct-2019
+ * @Last modified time: 23:58:56, 19-Oct-2019
  */
 
 const COLORMAP = {
@@ -65,7 +65,7 @@ class Dungeon {
       let tr = room.map((e,ind) => Math.floor(e + wantedSize[ind]/2)-1); //bottom right
       if(rectIsEmpty(this.map, ...tl.map((x)=>x-1), ...tr.map((x)=>x+1))){
         this.rooms.push([...tl, ...tr]);
-        this.drawEmptyRoom(...tl, ...tr);
+        this.generateRoom(...tl, ...tr);
       }
     }
   }
@@ -185,18 +185,35 @@ class Dungeon {
     } while (x != tox || y != toy)
   }
 
-  drawEmptyRoom(x1, y1, x2, y2){
+  generateRoom(x1, y1, x2, y2){
     let rd = [x2-x1, y2-y1];
-    this.map = pasteRect(this.map, zeros(rd, COLORMAP.empty), x1, y1);
+    let roomMap = zeros(rd, COLORMAP.empty);
+
+    let addFloor = (y, x, w) => {
+      for (let i = Math.floor(x-w/2); i < Math.floor(x+w/2); i++){
+        if (roomMap[i] !== undefined && (roomMap[i][y] >> 8) << 8 === COLORMAP.empty) roomMap[i][y] = COLORMAP.jumpfloor;
+      }
+    }
+
+    let fy = rd[1];
+    let w = 0;
+    let x = rTR(this.rng(), 0, rd[0]);
+
+    do { // go up to 2 below roof of room
+      fy -= rTR(this.rng(), 2, this.corridorwidth);
+      let oldw = w;
+      w = rTR(this.rng(), this.corridorwidth, Math.max(this.corridorwidth, rd[0]));
+      // console.log(x/rd[0]);
+      x += ((this.rng()>x/rd[0])*2-1)*rTR(this.rng(), 0, this.corridorwidth+(w+oldw)/2);
+      // console.log(x);
+      addFloor(fy, x, w);
+    } while (fy > 1)
+
+    this.map = pasteRect(this.map, roomMap, x1, y1);
     this.map = pasteRect(this.map, zeros([rd[0], 1], COLORMAP.room.b), x1, y2);  //floor
     this.map = pasteRect(this.map, zeros([1, rd[1]], COLORMAP.room.l), x1-1, y1); //left wall
     this.map = pasteRect(this.map, zeros([1, rd[1]], COLORMAP.room.r), x2, y1); //right wall
     this.map = pasteRect(this.map, zeros([rd[0], 1], COLORMAP.room.t), x1, y1-1); //right wall
-  }
-
-  generateRoom(x1, y1, x2, y2) {
-    let rd = [x2-x1-2, y2-y1-2];
-    this.map = pasteRect(this.map, zeros(rd, COLORMAP.empty), x1+1, y1+1);
   }
 }
 
