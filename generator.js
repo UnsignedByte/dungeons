@@ -3,7 +3,7 @@
  * @Date:   18:35:01, 15-Oct-2019
  * @Filename: generator.js
  * @Last modified by:   edl
- * @Last modified time: 23:58:56, 19-Oct-2019
+ * @Last modified time: 10:30:25, 22-Oct-2019
  */
 
 const COLORMAP = {

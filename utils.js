@@ -3,7 +3,7 @@
  * @Date:   18:41:21, 15-Oct-2019
  * @Filename: utils.js
  * @Last modified by:   edl
- * @Last modified time: 16:35:13, 19-Oct-2019
+ * @Last modified time: 18:50:55, 21-Oct-2019
  */
 
  function zeros(dim, val) {
@@ -32,6 +32,23 @@ function pasteRect(arr, arr2, x1, y1){
     }
   }
   return arr;
+}
+
+function getRect(arr, x, y, w, h){
+  let retmat = [];
+  for (let i = 0; i < w; i++){
+    if(arr[x+i] === undefined) {
+      retmat.push(zeros([h]));
+      continue;
+    }
+    for (let j = 0; j < h; j++){
+      if(arr[x+i][y+j] === undefined) {
+        retmat[i].push(0);
+        continue;
+      }
+      retmat[i].push(arr[x+i][y+j]);
+    }
+  }
 }
 
 function hexToRgb(hex) {

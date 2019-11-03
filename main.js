@@ -3,11 +3,21 @@
  * @Date:   21:56:34, 17-Oct-2019
  * @Filename: main.js
  * @Last modified by:   edl
- * @Last modified time: 23:41:51, 19-Oct-2019
+ * @Last modified time: 13:47:46, 22-Oct-2019
  */
 
 var globalSeed;
 var globalRNG;
+
+const MAPRATIO = 16; //how many in game pixels are equivalent to 1 "block"
+const WALKSPEED = 1;
+
+var KEYS_DOWN = {
+  'arrowup':false,
+  'arrowdown':false,
+  'arrowleft':false,
+  'arrowright':false
+};
 
 var canv, context;
 
@@ -40,3 +50,11 @@ window.onload = function(){
   let testDungeon = randomDungeon(globalRNG(), window.innerWidth, window.innerHeight);
   canvasPutMatrix(context, testDungeon.map);
 }
+
+//Event Listeners
+document.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() in KEYS_DOWN) KEYS_DOWN[e.key.toLowerCase()] = true;
+});
+document.addEventListener("keyup", (e) => {
+  if (e.key.toLowerCase() in KEYS_DOWN) KEYS_DOWN[e.key.toLowerCase()] = false;
+});
